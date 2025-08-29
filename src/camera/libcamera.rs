@@ -1,9 +1,8 @@
-use std::process::Stdio;
-use tokio::process::{Command, Child};
-use tokio::io::AsyncReadExt;
 use bytes::Bytes;
-use log::{info, error};
-
+use log::{error, info};
+use std::process::Stdio;
+use tokio::io::AsyncReadExt;
+use tokio::process::{Child, Command};
 
 pub struct CameraManager {
     stream_process: Option<Child>,
@@ -24,7 +23,7 @@ impl CameraManager {
 
     pub async fn capture_photo(&mut self) -> Result<Vec<u8>, String> {
         info!("Capturing photo: {}x{}", self.width, self.height);
-        
+
         // ストリーミングを一時停止
         let was_streaming = self.stream_process.is_some();
         if was_streaming {
@@ -32,15 +31,19 @@ impl CameraManager {
             // カメラリソースが解放されるまで少し待つ
             tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
         }
-        
+
         let output = Command::new("rpicam-jpeg")
             .args(&[
-                "-o", "-",
-                "--width", &self.width.to_string(),
-                "--height", &self.height.to_string(),
-                "-t", "1",
+                "-o",
+                "-",
+                "--width",
+                &self.width.to_string(),
+                "--height",
+                &self.height.to_string(),
+                "-t",
+                "1",
                 "-n",
-                "--immediate"
+                "--immediate",
             ])
             .output()
             .await
@@ -70,19 +73,27 @@ impl CameraManager {
             return Ok(());
         }
 
-        info!("Starting MJPEG stream: {}x{} @ {}fps", 
-              self.width, self.height, self.framerate);
+        info!(
+            "Starting MJPEG stream: {}x{} @ {}fps",
+            self.width, self.height, self.framerate
+        );
 
         let child = Command::new("rpicam-vid")
             .args(&[
-                "-t", "0",
-                "--codec", "mjpeg",
-                "--width", &self.width.to_string(),
-                "--height", &self.height.to_string(),
-                "--framerate", &self.framerate.to_string(),
+                "-t",
+                "0",
+                "--codec",
+                "mjpeg",
+                "--width",
+                &self.width.to_string(),
+                "--height",
+                &self.height.to_string(),
+                "--framerate",
+                &self.framerate.to_string(),
                 "--inline",
                 "-n",
-                "-o", "-"
+                "-o",
+                "-",
             ])
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -98,10 +109,14 @@ impl CameraManager {
             self.start_stream().await?;
         }
 
-        let child = self.stream_process.as_mut()
+        let child = self
+            .stream_process
+            .as_mut()
             .ok_or("Stream process not started")?;
-        
-        let stdout = child.stdout.as_mut()
+
+        let stdout = child
+            .stdout
+            .as_mut()
             .ok_or("Failed to get stdout from stream process")?;
 
         let mut buffer = vec![0u8; 65536];
@@ -109,26 +124,29 @@ impl CameraManager {
         let mut found_start = false;
 
         loop {
-            let n = stdout.read(&mut buffer).await
+            let n = stdout
+                .read(&mut buffer)
+                .await
                 .map_err(|e| format!("Failed to read from stream: {}", e))?;
-            
+
             if n == 0 {
                 return Err("Stream ended unexpectedly".to_string());
             }
 
             for i in 0..n {
                 if !found_start {
-                    if i > 0 && buffer[i-1] == 0xFF && buffer[i] == 0xD8 {
+                    if i > 0 && buffer[i - 1] == 0xFF && buffer[i] == 0xD8 {
                         found_start = true;
                         jpeg_data.push(0xFF);
                         jpeg_data.push(0xD8);
                     }
                 } else {
                     jpeg_data.push(buffer[i]);
-                    
-                    if jpeg_data.len() > 1 && 
-                       jpeg_data[jpeg_data.len()-2] == 0xFF && 
-                       jpeg_data[jpeg_data.len()-1] == 0xD9 {
+
+                    if jpeg_data.len() > 1
+                        && jpeg_data[jpeg_data.len() - 2] == 0xFF
+                        && jpeg_data[jpeg_data.len() - 1] == 0xD9
+                    {
                         return Ok(Bytes::from(jpeg_data));
                     }
                 }
@@ -144,7 +162,9 @@ impl CameraManager {
     pub async fn stop_stream(&mut self) -> Result<(), String> {
         if let Some(mut child) = self.stream_process.take() {
             info!("Stopping camera stream");
-            child.kill().await
+            child
+                .kill()
+                .await
                 .map_err(|e| format!("Failed to stop stream: {}", e))?;
         }
         Ok(())

@@ -1,16 +1,16 @@
 pub mod handlers;
 pub mod stream;
 
-use actix_web::{web, App, HttpServer};
+use crate::camera::CameraManager;
 use actix_files::Files;
+use actix_web::{web, App, HttpServer};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::camera::CameraManager;
 
 pub async fn start_server(
     host: &str,
     port: u16,
-    camera_manager: Arc<Mutex<CameraManager>>
+    camera_manager: Arc<Mutex<CameraManager>>,
 ) -> std::io::Result<()> {
     log::info!("Starting web server on {}:{}", host, port);
 
