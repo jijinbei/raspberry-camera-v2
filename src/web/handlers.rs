@@ -44,7 +44,7 @@ pub async fn capture(camera: web::Data<Arc<Mutex<CameraManager>>>) -> Result<Htt
             .content_type("image/jpeg")
             .body(jpeg_data)),
         Err(e) => {
-            log::error!("Failed to capture photo: {}", e);
+            log::error!("Failed to capture photo: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": format!("Failed to capture photo: {}", e)
             })))

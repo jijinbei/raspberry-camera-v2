@@ -39,7 +39,7 @@ fn create_mjpeg_stream(
                 Some((Ok(Bytes::from(frame)), (camera.clone(), interval)))
             }
             Err(e) => {
-                log::error!("Failed to read frame: {}", e);
+                log::error!("Failed to read frame: {e}");
                 cam.stop_stream().await.ok();
                 None
             }

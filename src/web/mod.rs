@@ -12,7 +12,7 @@ pub async fn start_server(
     port: u16,
     camera_manager: Arc<Mutex<CameraManager>>,
 ) -> std::io::Result<()> {
-    log::info!("Starting web server on {}:{}", host, port);
+    log::info!("Starting web server on {host}:{port}");
 
     HttpServer::new(move || {
         App::new()

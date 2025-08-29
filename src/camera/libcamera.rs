@@ -33,7 +33,7 @@ impl CameraManager {
         }
 
         let output = Command::new("rpicam-jpeg")
-            .args(&[
+            .args([
                 "-o",
                 "-",
                 "--width",
@@ -47,12 +47,12 @@ impl CameraManager {
             ])
             .output()
             .await
-            .map_err(|e| format!("Failed to execute rpicam-jpeg: {}", e))?;
+            .map_err(|e| format!("Failed to execute rpicam-jpeg: {e}"))?;
 
         let result = if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            error!("rpicam-jpeg failed: {}", stderr);
-            Err(format!("Camera capture failed: {}", stderr))
+            error!("rpicam-jpeg failed: {stderr}");
+            Err(format!("Camera capture failed: {stderr}"))
         } else {
             Ok(output.stdout)
         };
@@ -61,7 +61,7 @@ impl CameraManager {
         if was_streaming {
             tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
             if let Err(e) = self.start_stream().await {
-                error!("Failed to restart stream after capture: {}", e);
+                error!("Failed to restart stream after capture: {e}");
             }
         }
 
@@ -79,7 +79,7 @@ impl CameraManager {
         );
 
         let child = Command::new("rpicam-vid")
-            .args(&[
+            .args([
                 "-t",
                 "0",
                 "--codec",
@@ -98,7 +98,7 @@ impl CameraManager {
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
-            .map_err(|e| format!("Failed to start rpicam-vid: {}", e))?;
+            .map_err(|e| format!("Failed to start rpicam-vid: {e}"))?;
 
         self.stream_process = Some(child);
         Ok(())
@@ -127,7 +127,7 @@ impl CameraManager {
             let n = stdout
                 .read(&mut buffer)
                 .await
-                .map_err(|e| format!("Failed to read from stream: {}", e))?;
+                .map_err(|e| format!("Failed to read from stream: {e}"))?;
 
             if n == 0 {
                 return Err("Stream ended unexpectedly".to_string());
@@ -165,7 +165,7 @@ impl CameraManager {
             child
                 .kill()
                 .await
-                .map_err(|e| format!("Failed to stop stream: {}", e))?;
+                .map_err(|e| format!("Failed to stop stream: {e}"))?;
         }
         Ok(())
     }
