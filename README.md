@@ -47,23 +47,41 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 ```
 
-## ビルドと実行
+## インストールと実行
 
-### ビルド
+### 方法1: プリビルドバイナリを使用（推奨）
 
-```bash
-cargo build --release
-```
+1. **バイナリをダウンロード**
 
-### 実行
+   [Releases](https://github.com/your-username/raspberry-camera-v2/releases)から適切なバイナリをダウンロード：
+   - `raspberry-camera-v2-raspberry-pi-32bit.tar.gz` - Raspberry Pi 2/3/4 (32-bit OS)
+   - `raspberry-camera-v2-raspberry-pi-64bit.tar.gz` - Raspberry Pi 3/4/5 (64-bit OS)
 
-```bash
-# デフォルト設定で起動
-cargo run --release
+2. **展開と実行**
+   ```bash
+   # ダウンロードと展開
+   tar -xzf raspberry-camera-v2-raspberry-pi-*.tar.gz
+   
+   # 実行権限を付与して実行
+   chmod +x raspberry-camera-v2
+   ./raspberry-camera-v2
+   ```
 
-# または
-./target/release/raspberry-camera-v2
-```
+### 方法2: ソースからビルド
+
+1. **ビルド**
+   ```bash
+   cargo build --release
+   ```
+
+2. **実行**
+   ```bash
+   # デフォルト設定で起動
+   cargo run --release
+
+   # または
+   ./target/release/raspberry-camera-v2
+   ```
 
 ### 環境変数での設定
 
